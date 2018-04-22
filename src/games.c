@@ -44,6 +44,10 @@
 #include <limits.h>
 #include <math.h>
 
+#define EDGE_UPPER_BOUND__(a) \
+   ({ __typeof__ (a) _a = (a); \
+     _a > INT32_MAX ? INT32_MAX : _a; })
+
 typedef struct {
   long int no;
   igraph_psumtree_t *sumtrees;
@@ -3580,15 +3584,15 @@ int igraph_static_fitness_game(igraph_t *graph, igraph_integer_t no_of_edges,
         if (VECTOR(*fitness_out)[i] != 0 && VECTOR(*fitness_in)[i] != 0)
             nodes++;
       }
-      max_no_of_edges = min((int64_t)INT32_MAX, ((int64_t) outnodes) * innodes - (loops ? 0 : nodes));
+      max_no_of_edges = EDGE_UPPER_BOUND__( ((int64_t) outnodes) * innodes - (loops ? 0 : nodes) );
     } else {
       nodes = 0;
       for (i=0; i < no_of_nodes; i++) {
         if (VECTOR(*fitness_out)[i] != 0)
           nodes++;
       }
-      max_no_of_edges = loops ? min((int64_t)INT32_MAX, nodes*((int64_t)nodes+1)/2) :
-                                min((int64_t)INT32_MAX, nodes*((int64_t)nodes-1)/2);
+      max_no_of_edges = loops ? EDGE_UPPER_BOUND__( nodes*((int64_t)nodes+1)/2 ) :
+                                EDGE_UPPER_BOUND__( nodes*((int64_t)nodes-1)/2 );
     }
     if (no_of_edges > max_no_of_edges)
       IGRAPH_ERROR("Too many edges requested", IGRAPH_EINVAL);
